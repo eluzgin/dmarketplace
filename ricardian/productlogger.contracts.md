@@ -65,6 +65,16 @@ icon: @ICON_BASE_URL@/@SMART_CONTRACT_ACTION_ICON_URI@
 
 This action's purpose is for {{logger}} to log any associated record for a product {{product_id}}.
 
+<h1 class="contract">logowner</h1>
+
+---
+spec_version: "0.2.0"
+title: Log Owner
+summary: 'Log Owner'
+icon: @ICON_BASE_URL@/@SMART_CONTRACT_ACTION_ICON_URI@
+---
+
+This action's purpose is for {{logger}} to log a new owner for a product {{product_id}}.
 
 <h1 class="contract">setproducttag</h1>
 

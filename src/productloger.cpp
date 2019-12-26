@@ -1,13 +1,13 @@
-#include <productlogger.hpp>
+#include <productloger.hpp>
 
-uint64_t productlogger::get_next_id()
+uint64_t productloger::get_next_id()
 {
     id next_id{ids.exists() ? ids.get().value + 1 : 1};
     ids.set(next_id, get_self());
     return next_id.value;
 }
 
-void productlogger::adduser(name user, name manager, string description)
+void productloger::adduser(name user, name manager, string description)
 {
     require_auth(manager);
     check(user != manager, "user and manager cannot be equal");
@@ -33,7 +33,7 @@ void productlogger::adduser(name user, name manager, string description)
     });
 }
 
-void productlogger::rmuser(name user)
+void productloger::rmuser(name user)
 {
     auto user_itr = users.find(user.value);
     string error_msg = user.to_string() + " is not a user";
@@ -44,7 +44,7 @@ void productlogger::rmuser(name user)
     users.erase(user_itr);
 }
 
-void productlogger::addmanager(name manager, string description)
+void productloger::addmanager(name manager, string description)
 {
     require_auth(get_self());
 
@@ -62,7 +62,7 @@ void productlogger::addmanager(name manager, string description)
     });
 }
 
-void productlogger::rmmanager(name manager)
+void productloger::rmmanager(name manager)
 {
     require_auth(get_self());
     auto user_itr = users.find(manager.value);
@@ -73,7 +73,7 @@ void productlogger::rmmanager(name manager)
     users.erase(user_itr);
 }
 
-void productlogger::logproduct(uint64_t product_tag,
+void productloger::logproduct(uint64_t product_tag,
                              string product_name,
                              string product_description,
                              name logger)
@@ -84,21 +84,19 @@ void productlogger::logproduct(uint64_t product_tag,
     check(user_itr != users.end(), error_msg.c_str());
     auto tag_itr = tags.find(product_tag);
     check(tag_itr == tags.end(), "that product tag already exists");
-    check(!product_breed.empty(), "product breed cannot be empty");
-    check(!product_origin.empty(), "product origin cannot be empty");
-    check(!product_location.empty(), "product location cannot be empty");
+    check(!product_name.empty(), "product name cannot be empty");
+    check(!product_description.empty(), "product description cannot be empty");
     owner o = {logger, user_itr->manager, time_point_sec(current_time_point())};
-    location l = {logger, product_location, time_point_sec(current_time_point())};
     uint64_t product_id;
     products.emplace(get_self(), [&](auto &row) {
         row.id = get_next_id();
         product_id = row.id;
         row.tag = product_tag;
-        row.breed = product_breed;
-        row.origin = product_origin;
-        row.born = time_point_sec(current_time_point());
+        row.creator = logger;
+        row.productname = product_name;
+        row.description = product_description;
+        row.created = time_point_sec(current_time_point());
         row.owners.push_back(o);
-        row.locations.push_back(l);
     });
     tags.emplace(get_self(), [&](auto &row) {
         row.id = product_tag;
@@ -127,7 +125,7 @@ void productlogger::logowner(uint64_t product_id, name current_owner, name new_o
     });
 }
 
-void productlogger::logrecord(uint64_t product_id, string description, name logger)
+void productloger::logrecord(uint64_t product_id, string description, name logger)
 {
     require_auth(logger);
     auto product_itr = products.find(product_id);
@@ -143,7 +141,7 @@ void productlogger::logrecord(uint64_t product_id, string description, name logg
     });
 }
 
-void productlogger::setproducttag(uint64_t product_id, uint64_t new_product_tag, name logger)
+void productloger::setproducttag(uint64_t product_id, uint64_t new_product_tag, name logger)
 {
     require_auth(logger);
     auto product_itr = products.find(product_id);
@@ -167,7 +165,7 @@ void productlogger::setproducttag(uint64_t product_id, uint64_t new_product_tag,
     });
 }
 
-void productlogger::sold(uint64_t product_id, name logger)
+void productloger::sold(uint64_t product_id, name logger)
 {
     require_auth(logger);
     auto product_itr = products.find(product_id);

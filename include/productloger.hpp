@@ -9,11 +9,11 @@ using namespace eosio;
 using std::string;
 using std::vector;
 
-CONTRACT productlogger : public contract
+CONTRACT productloger : public contract
 {
 public:
     using contract::contract;
-    productlogger(name receiver, name code, datastream<const char *> ds)
+    productloger(name receiver, name code, datastream<const char *> ds)
         : contract(receiver, code, ds),
           users(receiver, receiver.value),
           products(receiver, receiver.value),
@@ -32,6 +32,9 @@ public:
                      string product_name,
                      string description,
                      name logger);
+    ACTION logowner(uint64_t product_id,
+                    name current_owner,
+                    name new_owner);                 
     ACTION logrecord(uint64_t product_id, 
                     string description, 
                     name logger);
@@ -44,6 +47,12 @@ public:
     uint64_t get_next_id();
 
 private:
+    struct owner
+    {
+        name logger;
+        name owner;
+        time_point_sec date_logged;
+    };
     struct record
     {
         name logger;
@@ -62,9 +71,11 @@ private:
     {
         uint64_t id;
         uint64_t tag;
-        string name;
+        name creator;
+        string productname;
         string description;
         time_point_sec created;
+        vector<owner> owners;
         vector<record> records;
         status sold;
         uint64_t primary_key() const { return id; }
