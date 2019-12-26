@@ -104,7 +104,7 @@ void productloger::logproduct(uint64_t product_tag,
     });
 }
 
-void productlogger::logowner(uint64_t product_id, name current_owner, name new_owner)
+void productloger::logowner(uint64_t product_id, name current_owner, name new_owner)
 {
     require_auth(current_owner);
     check(current_owner != new_owner, "current and new owner cannot be the same");
