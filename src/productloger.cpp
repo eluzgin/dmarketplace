@@ -170,7 +170,7 @@ void productloger::sold(uint64_t product_id, name logger)
     require_auth(logger);
     auto product_itr = products.find(product_id);
     check(product_itr != products.end(), "that product id does not exist");
-    check(!product_itr->consumed.status, "that product id has already been consumed");
+    check(!product_itr->sold.status, "that product id has already been sold");
     auto user_itr = users.find(logger.value);
     string error_msg = logger.to_string() + " is not a user";
     check(user_itr != users.end(), error_msg.c_str());

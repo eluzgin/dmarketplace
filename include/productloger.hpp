@@ -63,7 +63,7 @@ private:
     struct status
     {
         name logger;
-        bool sold = false;
+        bool status = false;
         time_point_sec date_logged;
     };
 
