@@ -1,3 +1,2 @@
-# productlogger-smart-contract
-Generic Product Logger Smart Contract
 # dmarketplace
+Distributed Marketplace for EOSIO Blockchain
