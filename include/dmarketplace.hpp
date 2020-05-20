@@ -1,4 +1,5 @@
 #include <eosio/eosio.hpp>
+#include <eosio/asset.hpp>
 #include <eosio/time.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/system.hpp>
@@ -25,7 +26,6 @@ public:
           reputations(receiver, receiver.value),
           bans(receiver, receiver.value),
           ids(receiver, receiver.value) {}
-
 
     ACTION addproduct(string product_name,
                      string description,
@@ -57,11 +57,7 @@ public:
                        string category_name,
                        string description,
                        string thumbnail,
-                       name author); 
-
-    ACTION listproduct(uint64_t product_id, 
-                    string description, 
-                    name seller);
+                       name author);               
 
     ACTION addpayaddr(string currency, 
                     string address,
@@ -73,7 +69,7 @@ public:
                     string currency,
                     name buyer); 
 
-    ACTION marksold(uint64_t order_id,
+    ACTION marksold(uint64_t product_id,
                     string paytrx,
                     name author);
 
@@ -82,7 +78,6 @@ public:
                     name actor,
                     name reviewer);
 
-/* To be implemented:
     ACTION adddispute(uint64_t order_id,
                     name seller,
                     name buyer,
@@ -97,7 +92,9 @@ public:
     ACTION banactor(name actor,
         uint64_t dispute_id,
         string comments);
- */                   
+
+    [[eosio::on_notify("eosio.token::transfer")]]
+    void ontransfer(name from, name to, asset quantity, string memo);                
 
     uint64_t get_next_id();
 
@@ -205,6 +202,7 @@ private:
         vector<record> records;
         int status;
         time_point_sec created;
+        time_point_sec updated;
         uint64_t primary_key() const { return id; }
     };
     typedef multi_index<"dispute"_n, dispute> dispute_index;

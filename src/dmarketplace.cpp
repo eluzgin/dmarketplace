@@ -115,24 +115,6 @@ void dmarketplace::updcategory(uint64_t id,
     });
 }                       
 
-void dmarketplace::listproduct(uint64_t product_id, 
-                    string description, 
-                    name seller)
-{
-    require_auth(seller);
-    auto product_itr = products.find(product_id);
-    check(product_itr != products.end(), "that product id does not exist");
-    string error_msg = seller.to_string() + " is not authorized to execute this action";
-    check(product_itr->seller == seller, error_msg);
-    listings.emplace(get_self(), [&](auto &row) {
-        row.id = get_next_id();
-        row.product_id = product_id;
-        row.seller = seller;
-        row.listing_fee = 0.0;
-        row.created = time_point_sec(current_time_point());
-    });
-}
-
 void dmarketplace::addpayaddr(string currency, 
                     string address,
                     name seller)
@@ -228,8 +210,68 @@ void dmarketplace::addreview(int rank,
     });
 }
 
+void dmarketplace::adddispute(uint64_t order_id,
+                    name seller,
+                    name buyer,
+                    string complaint,
+                    name author) 
+{
+    require_auth(author);
+    check(!complaint.empty(), "complaint description cannot be empty");
+    check((author == buyer || author == seller), "Only buyer or seller can file a complaint");
+    auto order_itr = orders.find(order_id);
+    check(order_itr != orders.end(), "that order id does not exist");
+    check(order_itr->seller == seller, "seller does not match seller in order");
+    check(order_itr->buyer == buyer, "buyer does not match buyer in order");
+    record rec = {author, "CREATED", complaint, time_point_sec(current_time_point())};
+    disputes.emplace(get_self(), [&](auto &row) {
+        row.id = get_next_id();
+        row.order_id = order_id;
+        row.seller = seller;
+        row.buyer = buyer;
+        row.status = 0; // created
+        row.records.push_back(rec);
+        row.created = time_point_sec(current_time_point());
+    });
+}
 
+void dmarketplace::appenddispute(uint64_t id, 
+                    string type,
+                    string description,
+                    name author)
+{
+    require_auth(author);
+    check(!type.empty(), "type cannot be empty");
+    check(!description.empty(), "description cannot be empty");
+    auto disp_itr = disputes.find(id);
+    check(disp_itr != disputes.end(), "that dispute id does not exist");
+    record rec = {author, type, description, time_point_sec(current_time_point())};
+    disputes.modify(disp_itr, get_self(), [&](auto &row) {
+        row.status = 1;
+        row.updated = time_point_sec(current_time_point());
+        row.records.push_back(rec);
+    });
+}
+    
+void dmarketplace::banactor(name actor,
+        uint64_t dispute_id,
+        string comments)
+{
+    //TODO: implement
+}
 
+[[eosio::on_notify("eosio.token::transfer")]]
+void dmarketplace::ontransfer(name from, name to, asset quantity, string memo)
+{
+    check(quantity.amount > 0, "Must be positive deposit amount");
+    check(!memo.empty(), "memo must contain product id");
 
-
-
+    int prod_id = std::stoi(memo);
+    listings.emplace(get_self(), [&](auto &row) {
+        row.id = get_next_id();
+        row.product_id = prod_id;
+        row.seller = from;
+        row.listing_fee = quantity.amount;
+        row.created = time_point_sec(current_time_point());
+    });
+}
