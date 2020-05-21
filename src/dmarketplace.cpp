@@ -257,7 +257,7 @@ void dmarketplace::banactor(name actor,
         uint64_t dispute_id,
         string comments)
 {
-    check(get_self().to_string == "dmarketplace", "Unauthorized to ban user");
+    check(get_self().to_string() == "dmarketplace", "Unauthorized to ban user");
     bans.emplace(get_self(), [&](auto &row) {
         row.id = get_next_id();
         row.actor = actor;
@@ -270,7 +270,7 @@ void dmarketplace::banactor(name actor,
 [[eosio::on_notify("eosio.token::transfer")]]
 void dmarketplace::ontransfer(name from, name to, asset quantity, string memo)
 {
-    if(from.to_string == "dmarketplace") {
+    if(from.to_string() == "dmarketplace") {
         return;
     }
     check(quantity.amount > 0, "Must be positive deposit amount");
